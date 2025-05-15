@@ -1,11 +1,4 @@
----
-title: Apache CloudStack Installation on Ubuntu 24.04 (Noble Numbat)
-
----
-
-# Apache CloudStack Installation on Ubuntu 24.04 (Noble Numbat)
-
-**CloudStack 19:**
+# **CloudStack 19:**
 * 2206059383 - Aisyah Arifatul Alya
 * 2206814324 - Fairuz Muhammad
 * 2206810452 - Mario Matthews Gunawan
