@@ -1,4 +1,6 @@
-# **CloudStack 19:**
+# Apache CloudStack Installation on Ubuntu 24.04 (Noble Numbat)
+
+**CloudStack 19:**
 * 2206059383 - Aisyah Arifatul Alya
 * 2206814324 - Fairuz Muhammad
 * 2206810452 - Mario Matthews Gunawan
@@ -263,3 +265,74 @@ tail -f /var/log/cloudstack/management/management-server.log
 ```
 > Access via browser with: 
 `http://<YOUR_IP>:8080`
+
+## XI. Prepare User-Data with Cloud-Init
+> This step is crucial if you're using Ubuntu Cloud Image as the instance template. Since it doesn't include a default password, you won’t be able to access the VM without setting up credentials and basic configuration through cloud-init.
+- Install cloud-init:
+```bash!
+ sudo apt install cloud-init
+```
+- Make this somewhere on your management server:
+```bash!
+## Example:
+mkdir -p cloudstack/cloud-init/
+vim cloudstack/cloud-init/cloud-init.yaml
+```
+```yaml!
+#cloud-config
+hostname: kelompok19-vm
+manage_etc_hosts: true
+
+users:
+  - name: ubuntu
+    ssh-authorized-keys:
+      - ssh-rsa AAAAB3... # your public key
+    sudo: ['ALL=(ALL) NOPASSWD:ALL']
+    shell: /bin/bash
+
+chpasswd:
+  list: |
+    ubuntu:kelompok19admin
+  expire: false
+
+ssh_pwauth: true
+
+runcmd:
+  - echo "nameserver 8.8.8.8" > /etc/resolv.conf
+```
+- Encode the YAML file:
+```bash!
+base64 -w 0 cloud-init.yaml > cloud-init.b64
+```
+- Show the .b64 file on your terminal or open it with file editor:
+```bash!
+cat cloud-init.b64
+## or
+vim cloud-init.yaml
+```
+```ini!
+## Example:
+kelompok19@kelompok19server:~/cloudstack/cloud-init$ cat cloud-init.b64
+I2Nsb3VkLWNvbmZpZwpob3N0bmFtZToga2Vsb21wb2sxOS12bQptYW5hZ2VfZXRjX2hvc3RzOiB0cnVlCgp1c2VyczoKICAtIG5hbWU6IHVidW50dQogICAgc3NoLWF1dGhvcml6ZWQta2V5czoKICAgICAgLSBzc2gtcnNhIEFBQUFCM056YUMxeWMyRUFBQUFEQVFBQkFBQUJBUUNVQ25XNjJPUmlMNWN4VFJsNVN1VDdGMXNjZzgwZnJnTlA3bEFUbTJqOU80WFhFMFV0dGlkd3hIaGNhbVlWL0R0WDU3dHB5S2V3dVpOaXZ4UmZDNVJzQ3dObnZ6UTFZM01xTk9QckV3eXo5cjYyZDZrRzFid3RBQlAzMDJzNzBuTVZ5eTNtOXVHdEJDbDhHSkhPSWc3blNFcnpBeFlBb2k5dmNYeHFaNk1aSmUrc1hOc2U4QnhsbmhLUzQwUElseEtGck9XQTRyc0REYnFna1RWTWMzTDk5Vk4wRTkzbjZzYUMydFZGbWEvRGlRK2F6dk1VUk9OL0ZGMm0vNTJ3aFlyM2xrbDJWY2taVUNLaE9SclArdjVVRDB4YldMSkZCWEMxWVNqUUhlejZaa04xWFFGNEgrTUJiK0M2eUNLUzhMSXRZbkpnempIQ3FwMFhEN1BtdlpsagogICAgc3VkbzogWyJBTEw9KEFMTCkgTk9QQVNTV0Q6QUxMIl0KICAgIHNoZWxsOiAvYmluL2Jhc2gKCmNocGFzc3dkOgogIGxpc3Q6IHwKICAgIHVidW50dTprZWxvbXBvazE5YWRtaW4KICBleHBpcmU6IGZhbHNlCgpzc2hfcHdhdXRoOiB0cnVlCgpydW5jbWQ6CiAgLSBlY2hvICJuYW1lc2VydmVyIDguOC44LjgiID4gL2V0Yy9yZXNvbHYuY29uZgo=
+```
+- And you're done. The content of the **cloud-init.b64** will be used as the "userdata" when you're making a new instance via the CloudMonkey CLI.
+## XII. Make a New Instance
+### With Shared Network
+- Enter the Cloudmonkey CLI:
+```bash!
+cloudmonkey
+```
+- Create a new network:
+```bash!
+## Retrieve your Zone ID
+list zones
+list physicalnetworks zoneid=[YOUR-ZONE-ID]
+## Example: list physicalnetworks zoneid=02a8b1b0-9c1e-480c-9d13-9ae780d51905
+list networkofferings
+## Pick the one with the name "DefaultSharedNetworkOffering"
+create network name=SharedNetwork01 displaytext=SharedNetwork01 networkofferingid=e4731a8e-31b5-482f-a0e1-3d5746edc81b zoneid=02a8b1b0-9c1e-480c-9d13-9ae780d51905 gateway=192.168.103.1 netmask=255.255.255.0 startip=192.168.103.230 endip=192.168.103.240 vlan=untagged physicalnetworkid=6ce7b56a-a7b9-495f-be94-ed9e8c5ad1b2
+```
+- Create a new instance. For the template ID, we are using the ID of the Ubuntu Cloud Image that we registered as a template in the "Images>Templates" menu on the CloudStack GUI directly:
+```bash!
+deploy virtualmachine name=Ubuntu-22-01 templateid=abbfef47-476e-4518-9e5f-a1a901c45819 serviceofferingid=eb6c8ea9-2eb6-4c35-89bf-e3d5f70df23c zoneid=02a8b1b0-9c1e-480c-9d13-9ae780d51905 networkids=8593971a-0cf7-4778-84e2-52067eadf540 keypair=myrsa userdata=I2Nsb3VkLWNvbmZpZwpob3N0bmFtZToga2Vsb21wb2sxOS12bQptYW5hZ2VfZXRjX2hvc3RzOiB0cnVlCgp1c2VyczoKICAtIG5hbWU6IHVidW50dQogICAgc3NoLWF1dGhvcml6ZWQta2V5czoKICAgICAgLSBzc2gtcnNhIEFBQUFCM056YUMxeWMyRUFBQUFEQVFBQkFBQUJBUUNVQ25XNjJPUmlMNWN4VFJsNVN1VDdGMXNjZzgwZnJnTlA3bEFUbTJqOU80WFhFMFV0dGlkd3hIaGNhbVlWL0R0WDU3dHB5S2V3dVpOaXZ4UmZDNVJzQ3dObnZ6UTFZM01xTk9QckV3eXo5cjYyZDZrRzFid3RBQlAzMDJzNzBuTVZ5eTNtOXVHdEJDbDhHSkhPSWc3blNFcnpBeFlBb2k5dmNYeHFaNk1aSmUrc1hOc2U4QnhsbmhLUzQwUElseEtGck9XQTRyc0REYnFna1RWTWMzTDk5Vk4wRTkzbjZzYUMydFZGbWEvRGlRK2F6dk1VUk9OL0ZGMm0vNTJ3aFlyM2xrbDJWY2taVUNLaE9SclArdjVVRDB4YldMSkZCWEMxWVNqUUhlejZaa04xWFFGNEgrTUJiK0M2eUNLUzhMSXRZbkpnempIQ3FwMFhEN1BtdlpsagogICAgc3VkbzogWyJBTEw9KEFMTCkgTk9QQVNTV0Q6QUxMIl0KICAgIHNoZWxsOiAvYmluL2Jhc2gKCmNocGFzc3dkOgogIGxpc3Q6IHwKICAgIHVidW50dTprZWxvbXBvazE5YWRtaW4KICBleHBpcmU6IGZhbHNlCgpzc2hfcHdhdXRoOiB0cnVlCgpydW5jbWQ6CiAgLSBlY2hvICJuYW1lc2VydmVyIDguOC44LjgiID4gL2V0Yy9yZXNvbHYuY29uZgo=
+```
