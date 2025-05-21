@@ -8,6 +8,18 @@
 ---
 
 ## I. System Update and Tools Installation
+
+### Prerequisites
+Before starting:
+- Ensure the system has at least:
+    - 2 CPUs, 4 GB RAM (Management Server only)
+    - 1 Ethernet or bridged Wi-Fi (test-only)
+    - 100 GB storage (expandable via LVM)
+- Use Ubuntu 24.04 Server, fresh install.
+- Set hostname properly:
+`hostnamectl set-hostname cloudstack-node`
+
+### Installation
 > All the commands below SHALL be ran under the root privilege.
 ```bash!
 sudo -i
@@ -26,6 +38,14 @@ apt install openntpd openssh-server
 - **intel-microcode:** Installs CPU microcode updates for Intel processors.
 - **openntpd:** Daemon to synchronize the system clock with internet time servers.
 - **openssh-server:** SSH server to allow remote connections to the machine.
+
+> Ensure time is synced properly to avoid certificate/agent failures:
+```
+systemctl enable openntpd
+systemctl start openntpd
+ntpdate -u pool.ntp.org
+```
+
 
 ## II. Modify the Network Configuration File
 1. Redirect to the netplan directory.
@@ -74,6 +94,8 @@ reboot
 # Or if you're not sure, yet:
 sudo netplan try
 ```
+
+>  Warning: CloudStack is designed to use bridged Ethernet (eth0). Using Wi-Fi (wlp0s20f3) as part of cloudbr0 may result in VM communication issues. This is acceptable only for testing, not production.
 
 ## III. Configure LVM
 
@@ -131,6 +153,20 @@ systemctl status mysql
 ```
 
 ### 5.4. Deploying database as root and creating new user
+
+> By default, MySQL on Ubuntu 24.04 uses "auth_socket" for root authentication.
+This means logging in to MySQL with mysql -u root -p will fail unless you’ve explicitly assigned a password to the root account and changed its authentication method.
+
+To allow root login with a password (needed for CloudStack database deployment):
+```
+sudo mysql
+ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY 'yourpassword';
+FLUSH PRIVILEGES;
+```
+
+>Replace 'yourpassword' with a secure password.
+After this, the root account will support password-based login and work with cloudstack-setup-databases.
+
 ```bash
 cloudstack-setup-databases cloud:cloud@localhost --deploy-as=root:[insert your root password] -i 192.168.1.77
 ```
@@ -225,6 +261,14 @@ sudo apparmor_parser -R /etc/apparmor.d/usr.sbin.libvirtd
 sudo apparmor_parser -R /etc/apparmor.d/usr.lib.libvirt.virt-aa-helper
 ```
 
+### 7.6. Agent Troubleshooting
+If agent fails to start, verify:
+- File: /etc/cloudstack/agent/agent.properties
+- Log: /var/log/cloudstack/agent/agent.log
+- Common fixes:
+    - Failed to get private nic name → set private.network.device properly
+    - Unable to start agent → ensure libvirtd is up and TCP is enabled
+
 ## VIII. Generate Unique Host ID
 ```bash
 sudo apt install -y uuid-runtime
@@ -264,7 +308,23 @@ systemctl status cloudstack-management
 tail -f /var/log/cloudstack/management/management-server.log
 ```
 > Access via browser with: 
-`http://<YOUR_IP>:8080`
+
+`http://<YOUR_IP>:8080/client`
+
+- Default credentials:
+    - Username: admin
+    - Password: password
+
+### Manual Certificate Setup (If Agent Fails to Connect).
+> If agent fails with bad_certificate or SSL handshake failed, re-run agent setup:
+
+`cloudstack-setup-agent --configure`
+>Ensure /etc/cloudstack/agent/agent.properties has:
+```
+private.network.device=wlp0s20f3
+public.network.device=cloudbr0
+guest.network.device=cloudbr0
+```
 
 ## XI. Prepare User-Data with Cloud-Init
 > This step is crucial if you're using Ubuntu Cloud Image as the instance template. Since it doesn't include a default password, you won’t be able to access the VM without setting up credentials and basic configuration through cloud-init.
@@ -335,4 +395,13 @@ create network name=SharedNetwork01 displaytext=SharedNetwork01 networkofferingi
 - Create a new instance. For the template ID, we are using the ID of the Ubuntu Cloud Image that we registered as a template in the "Images>Templates" menu on the CloudStack GUI directly:
 ```bash!
 deploy virtualmachine name=Ubuntu-22-01 templateid=abbfef47-476e-4518-9e5f-a1a901c45819 serviceofferingid=eb6c8ea9-2eb6-4c35-89bf-e3d5f70df23c zoneid=02a8b1b0-9c1e-480c-9d13-9ae780d51905 networkids=8593971a-0cf7-4778-84e2-52067eadf540 keypair=myrsa userdata=I2Nsb3VkLWNvbmZpZwpob3N0bmFtZToga2Vsb21wb2sxOS12bQptYW5hZ2VfZXRjX2hvc3RzOiB0cnVlCgp1c2VyczoKICAtIG5hbWU6IHVidW50dQogICAgc3NoLWF1dGhvcml6ZWQta2V5czoKICAgICAgLSBzc2gtcnNhIEFBQUFCM056YUMxeWMyRUFBQUFEQVFBQkFBQUJBUUNVQ25XNjJPUmlMNWN4VFJsNVN1VDdGMXNjZzgwZnJnTlA3bEFUbTJqOU80WFhFMFV0dGlkd3hIaGNhbVlWL0R0WDU3dHB5S2V3dVpOaXZ4UmZDNVJzQ3dObnZ6UTFZM01xTk9QckV3eXo5cjYyZDZrRzFid3RBQlAzMDJzNzBuTVZ5eTNtOXVHdEJDbDhHSkhPSWc3blNFcnpBeFlBb2k5dmNYeHFaNk1aSmUrc1hOc2U4QnhsbmhLUzQwUElseEtGck9XQTRyc0REYnFna1RWTWMzTDk5Vk4wRTkzbjZzYUMydFZGbWEvRGlRK2F6dk1VUk9OL0ZGMm0vNTJ3aFlyM2xrbDJWY2taVUNLaE9SclArdjVVRDB4YldMSkZCWEMxWVNqUUhlejZaa04xWFFGNEgrTUJiK0M2eUNLUzhMSXRZbkpnempIQ3FwMFhEN1BtdlpsagogICAgc3VkbzogWyJBTEw9KEFMTCkgTk9QQVNTV0Q6QUxMIl0KICAgIHNoZWxsOiAvYmluL2Jhc2gKCmNocGFzc3dkOgogIGxpc3Q6IHwKICAgIHVidW50dTprZWxvbXBvazE5YWRtaW4KICBleHBpcmU6IGZhbHNlCgpzc2hfcHdhdXRoOiB0cnVlCgpydW5jbWQ6CiAgLSBlY2hvICJuYW1lc2VydmVyIDguOC44LjgiID4gL2V0Yy9yZXNvbHYuY29uZgo=
+```
+
+### XIII. Resetting CloudStack (Optional)
+> If you made a mistake and want to wipe and reinstall CloudStack cleanly:
+```
+systemctl stop cloudstack-management cloudstack-agent
+mysql -u root -p -e "DROP DATABASE cloud;"
+rm -rf /var/lib/cloudstack /etc/cloudstack /var/log/cloudstack
+rm -rf /export/primary/* /export/secondary/*
 ```
