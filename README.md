@@ -399,3 +399,7 @@ mysql -u root -p -e "DROP DATABASE cloud;"
 rm -rf /var/lib/cloudstack /etc/cloudstack /var/log/cloudstack
 rm -rf /export/primary/* /export/secondary/*
 ```
+
+### XIV. Cloudstack Instance Access Documentation
+![messageImage_1747392376363](https://github.com/user-attachments/assets/6c350276-47a7-48bd-8206-63f590a3ff9e)
+
