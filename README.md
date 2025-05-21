@@ -20,7 +20,7 @@ Before starting:
 `hostnamectl set-hostname cloudstack-node`
 
 ### Installation
-> All the commands below SHALL be ran under the root privilege.
+> All the commands below shall be ran under the root privilege.
 ```bash!
 sudo -i
 apt update && apt upgrade -y
@@ -56,35 +56,29 @@ cd /etc/netplan
 3. Within the directory, do this command to edit the .yaml file.
 
 ```bash
-sudo vim 50-cloud-init.yaml
+sudo vim 01-network-manager-all.yaml
 ```
 4. Using the vim editor, enter the visual line mode by clicking on ***'Shift + v'***. Because we will change the entire content of the file, click ***'Enter'*** to block each line one by one, then click the ***'d'*** key to delete everything. After making sure that the file is empty, copy the configuration below by entering the insert mode first by clicking ***'i'***. For the "addresses:" line below the "cloudbr0:", the address could differ depending on the machine, so consider checking it first with the ***ip route*** and ***ifconfig*** command.
 ```yaml=
 network:
-  version: 2
-  renderer: networkd
-  ethernets:
-    wlp0s20f3:
-      dhcp4: false
-      dhcp6: false
-      optional: true
-  bridges:
-    cloudbr0:
-      addresses: [192.168.1.77/24]
-      routes:
-        - to: default
-          via: 192.168.1.1
-      nameservers:
-        addresses: [1.1.1.1,8.8.8.8]
-      interfaces: [wlp0s20f3]
-      dhcp4: false
-      dhcp6: false
-      parameters:
-        stp: false
-        forward-delay: 0
+    version: 2
+    renderer: networkd
+    ethernets:
+      eno1:
+            dhcp4: false
+    bridges:
+        cloudbr0:
+            interfaces: [ eno1 ]
+            dhcp4: no
+            dhcp6: no
+            addresses: [192.168.103.157/24]
+            routes:
+              - to: default
+                via: 192.168.103.1
+            nameservers:
+                addresses: [8.8.8.8, 8.8.4.4]
 ```
 
-![image](https://hackmd.io/_uploads/HkEUyzLxee.png)
 5. Click the escape key and finally type on ":wq" to write and quit the editor. 
 6. Apply changes to the file by using these commands below:
 ```bash
