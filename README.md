@@ -432,5 +432,9 @@ rm -rf /export/primary/* /export/secondary/*
 ```
 
 ### XV. Cloudstack Instance Access Documentation
+- Accessing the instance through the "View console" button:
 ![messageImage_1747392376363](https://github.com/user-attachments/assets/6c350276-47a7-48bd-8206-63f590a3ff9e)
+- Testing the instance's network connectivity using curl to "http://www.google.com":
+![curl_test](https://github.com/user-attachments/assets/9c032b1b-310e-4b58-aec8-1b0102138404)
+
 
