@@ -370,9 +370,40 @@ kelompok19@kelompok19server:~/cloudstack/cloud-init$ cat cloud-init.b64
 I2Nsb3VkLWNvbmZpZwpob3N0bmFtZToga2Vsb21wb2sxOS12bQptYW5hZ2VfZXRjX2hvc3RzOiB0cnVlCgp1c2VyczoKICAtIG5hbWU6IHVidW50dQogICAgc3NoLWF1dGhvcml6ZWQta2V5czoKICAgICAgLSBzc2gtcnNhIEFBQUFCM056YUMxeWMyRUFBQUFEQVFBQkFBQUJBUUNVQ25XNjJPUmlMNWN4VFJsNVN1VDdGMXNjZzgwZnJnTlA3bEFUbTJqOU80WFhFMFV0dGlkd3hIaGNhbVlWL0R0WDU3dHB5S2V3dVpOaXZ4UmZDNVJzQ3dObnZ6UTFZM01xTk9QckV3eXo5cjYyZDZrRzFid3RBQlAzMDJzNzBuTVZ5eTNtOXVHdEJDbDhHSkhPSWc3blNFcnpBeFlBb2k5dmNYeHFaNk1aSmUrc1hOc2U4QnhsbmhLUzQwUElseEtGck9XQTRyc0REYnFna1RWTWMzTDk5Vk4wRTkzbjZzYUMydFZGbWEvRGlRK2F6dk1VUk9OL0ZGMm0vNTJ3aFlyM2xrbDJWY2taVUNLaE9SclArdjVVRDB4YldMSkZCWEMxWVNqUUhlejZaa04xWFFGNEgrTUJiK0M2eUNLUzhMSXRZbkpnempIQ3FwMFhEN1BtdlpsagogICAgc3VkbzogWyJBTEw9KEFMTCkgTk9QQVNTV0Q6QUxMIl0KICAgIHNoZWxsOiAvYmluL2Jhc2gKCmNocGFzc3dkOgogIGxpc3Q6IHwKICAgIHVidW50dTprZWxvbXBvazE5YWRtaW4KICBleHBpcmU6IGZhbHNlCgpzc2hfcHdhdXRoOiB0cnVlCgpydW5jbWQ6CiAgLSBlY2hvICJuYW1lc2VydmVyIDguOC44LjgiID4gL2V0Yy9yZXNvbHYuY29uZgo=
 ```
 - And you're done. The content of the **cloud-init.b64** will be used as the "userdata" when you're making a new instance via the CloudMonkey CLI.
-## XII. Make a New Instance
+
+## XII. CloudMonkey CLI Setup
+- Install the package:
+```bash!
+sudo apt install cloudmonkey
+```
+- Try entering the CloudMonkey CLI:
+```bash!
+cloudmonkey
+```
+- To retrieve or generate a new API key and Secret key from the CloudStack GUI, go to the "Accounts" section in the navigation menu. Select the account for which you want to obtain the keys. For example, if you're using the default "admin" account, click on it. If there are no users listed under that account, you’ll need to create one first. After selecting a user, scroll down to the "API Key" and "Secret Key" fields. If they haven't been generated yet, click the "Generate Keys" button.
+- Configure CloudMonkey with your credentials:
+```bash!
+set url http://[YOUR-IP]:8080/client/api
+set apikey [YOUR-API-KEY]
+set secretkey [YOUR-SECRET-KEY]
+set username [YOUR-USERNAME]
+set password [YOUR-PASSWORD]
+set display json
+sync
+```
+```bash!
+## Example:
+set url http://192.168.103.157:8080/client/api
+set apikey DweiuKIZD1eWlfpSkCGANgfX72f2qgokH62_2Tlp5gl5tENGK6w39HZzpaT9EPoSA8DCOHy2TURJ4M9GepkUZQ
+set secretkey 6gdLfh1W5bx80A6NJSzMYTabbRdExuj_UvoT7OY0n5Krl4mP8H54EFv0V-Y6fJj6V9bx7ZOYOsy8aRQRzg0Rgw
+set username admin
+set password kelompok19admin
+set display json
+sync
+```
+## XIII. Make a New Instance
 ### With Shared Network
-- Enter the Cloudmonkey CLI:
+- Enter the CloudMonkey CLI:
 ```bash!
 cloudmonkey
 ```
@@ -391,7 +422,7 @@ create network name=SharedNetwork01 displaytext=SharedNetwork01 networkofferingi
 deploy virtualmachine name=Ubuntu-22-01 templateid=abbfef47-476e-4518-9e5f-a1a901c45819 serviceofferingid=eb6c8ea9-2eb6-4c35-89bf-e3d5f70df23c zoneid=02a8b1b0-9c1e-480c-9d13-9ae780d51905 networkids=8593971a-0cf7-4778-84e2-52067eadf540 keypair=myrsa userdata=I2Nsb3VkLWNvbmZpZwpob3N0bmFtZToga2Vsb21wb2sxOS12bQptYW5hZ2VfZXRjX2hvc3RzOiB0cnVlCgp1c2VyczoKICAtIG5hbWU6IHVidW50dQogICAgc3NoLWF1dGhvcml6ZWQta2V5czoKICAgICAgLSBzc2gtcnNhIEFBQUFCM056YUMxeWMyRUFBQUFEQVFBQkFBQUJBUUNVQ25XNjJPUmlMNWN4VFJsNVN1VDdGMXNjZzgwZnJnTlA3bEFUbTJqOU80WFhFMFV0dGlkd3hIaGNhbVlWL0R0WDU3dHB5S2V3dVpOaXZ4UmZDNVJzQ3dObnZ6UTFZM01xTk9QckV3eXo5cjYyZDZrRzFid3RBQlAzMDJzNzBuTVZ5eTNtOXVHdEJDbDhHSkhPSWc3blNFcnpBeFlBb2k5dmNYeHFaNk1aSmUrc1hOc2U4QnhsbmhLUzQwUElseEtGck9XQTRyc0REYnFna1RWTWMzTDk5Vk4wRTkzbjZzYUMydFZGbWEvRGlRK2F6dk1VUk9OL0ZGMm0vNTJ3aFlyM2xrbDJWY2taVUNLaE9SclArdjVVRDB4YldMSkZCWEMxWVNqUUhlejZaa04xWFFGNEgrTUJiK0M2eUNLUzhMSXRZbkpnempIQ3FwMFhEN1BtdlpsagogICAgc3VkbzogWyJBTEw9KEFMTCkgTk9QQVNTV0Q6QUxMIl0KICAgIHNoZWxsOiAvYmluL2Jhc2gKCmNocGFzc3dkOgogIGxpc3Q6IHwKICAgIHVidW50dTprZWxvbXBvazE5YWRtaW4KICBleHBpcmU6IGZhbHNlCgpzc2hfcHdhdXRoOiB0cnVlCgpydW5jbWQ6CiAgLSBlY2hvICJuYW1lc2VydmVyIDguOC44LjgiID4gL2V0Yy9yZXNvbHYuY29uZgo=
 ```
 
-### XIII. Resetting CloudStack (Optional)
+### XIV. Resetting CloudStack (Optional)
 > If you made a mistake and want to wipe and reinstall CloudStack cleanly:
 ```
 systemctl stop cloudstack-management cloudstack-agent
@@ -400,6 +431,6 @@ rm -rf /var/lib/cloudstack /etc/cloudstack /var/log/cloudstack
 rm -rf /export/primary/* /export/secondary/*
 ```
 
-### XIV. Cloudstack Instance Access Documentation
+### XV. Cloudstack Instance Access Documentation
 ![messageImage_1747392376363](https://github.com/user-attachments/assets/6c350276-47a7-48bd-8206-63f590a3ff9e)
 
