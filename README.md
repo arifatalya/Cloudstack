@@ -1,6 +1,7 @@
 # Apache CloudStack Installation on Ubuntu 24.04 (Noble Numbat)
+![image](https://hackmd.io/_uploads/rJGAZ56Wgx.png)
 
-**CloudStack 19:**
+### **CloudStack 19:**
 * 2206059383 - Aisyah Arifatul Alya
 * 2206814324 - Fairuz Muhammad
 * 2206810452 - Mario Matthews Gunawan
@@ -165,25 +166,69 @@ After this, the root account will support password-based login and work with clo
 cloudstack-setup-databases cloud:cloud@localhost --deploy-as=root:[insert your root password] -i 192.168.1.77
 ```
 
-## VI. Setting up NFS server
-### 6.1. Installing the packages for NFS server
+## VI. Setting up NFS Server
+
+### 6.1. Installing the Packages for NFS Server
+
+- Install the required packages:
 ```bash
 sudo -i
 apt install nfs-kernel-server quota
 ```
 
+- Edit the `/etc/exports` file:
 ```bash
-echo "/export  *(rw,async,no_root_squash,no_subtree_check)" > /etc/exports
+vim /etc/exports
+```
+> Inside `vim`, press `Shift + G` to go to the end of the file, then press `o` to add a new line and insert the following:
+```
+/export  *(rw,async,no_root_squash,no_subtree_check)
+```
+> Press `Esc`, then type `:wq` and press `Enter` to save and exit.
+
+- Create directories for both primary and secondary storage, then export them:
+```bash
 mkdir -p /export/primary /export/secondary
 exportfs -a
 ```
-### 6.2. Configuring NFS server
+
+### 6.2. Configuring the NFS Server
+
+- 1️⃣ Edit `/etc/default/nfs-kernel-server`:
 ```bash
-sed -i -e 's/^RPCMOUNTDOPTS="--manage-gids"$/RPCMOUNTDOPTS="-p 892 --manage-gids"/g' /etc/default/nfs-kernel-server
-sed -i -e 's/^STATDOPTS=$/STATDOPTS="--port 662 --outgoing-port 2020"/g' /etc/default/nfs-common
-echo "NEED_STATD=yes" >> /etc/default/nfs-common
-sed -i -e 's/^RPCRQUOTADOPTS=$/RPCRQUOTADOPTS="-p 875"/g' /etc/default/quota
+vim /etc/default/nfs-kernel-server
 ```
+Find the line starting with `RPCMOUNTDOPTS="--manage-gids"`. Change it to:
+```
+RPCMOUNTDOPTS="-p 892 --manage-gids"
+```
+Save and exit with `:wq`.
+
+- 2️⃣ Edit `/etc/default/nfs-common`:
+```bash
+vim /etc/default/nfs-common
+```
+Find and modify the following line (use `/STATDOPTS` to search):
+```
+STATDOPTS="--port 662 --outgoing-port 2020"
+```
+Then go to the end (`Shift + G`), press `i`, and insert:
+```
+NEED_STATD=yes
+```
+Save and exit with `:wq`.
+
+- 3️⃣ Edit `/etc/default/quota`:
+```bash
+vim /etc/default/quota
+```
+Find and replace the `RPCRQUOTADOPTS` line:
+```
+RPCRQUOTADOPTS="-p 875"
+```
+Save and exit with `:wq`.
+
+- 4️⃣ Then restart the NFS service:
 ```bash
 service nfs-kernel-server restart
 ```
@@ -194,7 +239,6 @@ service nfs-kernel-server restart
 sudo apt update
 sudo apt install -y qemu-kvm libvirt-daemon-system libvirt-clients virtinst cloudstack-agent
 ```
-
 
 ### 7.2. Enable KVM Modules
 ```bash
@@ -401,8 +445,20 @@ set password kelompok19admin
 set display json
 sync
 ```
-## XIII. Make a New Instance
-### With Shared Network
+## XIII. Register a New Template (via URL)
+> Before making a new instance, make sure that you already have the template that you're going to use. Simply skip this step if you're using the built-in templates which Cloudstack provides.
+- Ubuntu offers various options of cloud images that can be accessed here: https://cloud-images.ubuntu.com/
+- Navigate to your version of choice. On this example, we chose the Jammy Jellyfish:
+https://cloud-images.ubuntu.com/jammy/current/
+- Pick the one with "QCow2 UEFI/GPT Bootable disk image" as the description from the list. For example, we chose this one below. 
+![Screenshot 2025-05-23 115624](https://hackmd.io/_uploads/ryOwgFp-xg.png)
+- Copy the URL by hovering through it, right-click on your mouse or two-finger click on your touchpad, and click on the "Copy link address" from the pop-up option. This URL will be pasted to the URL field on the form when registering the template. We are doing this because we want the Cloudstack to install it directly from the URL instead of requiring us to download the image to our local storage first.
+https://cloud-images.ubuntu.com/jammy/current/jammy-server-cloudimg-amd64.img
+- Navigate to the "Images > Templates" from the left-hand side menu, and click on the "Register template from URL" button.
+![Screenshot 2025-05-16 012200](https://hackmd.io/_uploads/ryrsiu6bxx.png)
+
+## XIV. Make a New Instance
+> Due to preference, we are using cmk to make a new instance instead of making it directly from the Cloudstack GUI. 
 - Enter the CloudMonkey CLI:
 ```bash!
 cloudmonkey
@@ -422,7 +478,7 @@ create network name=SharedNetwork01 displaytext=SharedNetwork01 networkofferingi
 deploy virtualmachine name=Ubuntu-22-01 templateid=abbfef47-476e-4518-9e5f-a1a901c45819 serviceofferingid=eb6c8ea9-2eb6-4c35-89bf-e3d5f70df23c zoneid=02a8b1b0-9c1e-480c-9d13-9ae780d51905 networkids=8593971a-0cf7-4778-84e2-52067eadf540 keypair=myrsa userdata=I2Nsb3VkLWNvbmZpZwpob3N0bmFtZToga2Vsb21wb2sxOS12bQptYW5hZ2VfZXRjX2hvc3RzOiB0cnVlCgp1c2VyczoKICAtIG5hbWU6IHVidW50dQogICAgc3NoLWF1dGhvcml6ZWQta2V5czoKICAgICAgLSBzc2gtcnNhIEFBQUFCM056YUMxeWMyRUFBQUFEQVFBQkFBQUJBUUNVQ25XNjJPUmlMNWN4VFJsNVN1VDdGMXNjZzgwZnJnTlA3bEFUbTJqOU80WFhFMFV0dGlkd3hIaGNhbVlWL0R0WDU3dHB5S2V3dVpOaXZ4UmZDNVJzQ3dObnZ6UTFZM01xTk9QckV3eXo5cjYyZDZrRzFid3RBQlAzMDJzNzBuTVZ5eTNtOXVHdEJDbDhHSkhPSWc3blNFcnpBeFlBb2k5dmNYeHFaNk1aSmUrc1hOc2U4QnhsbmhLUzQwUElseEtGck9XQTRyc0REYnFna1RWTWMzTDk5Vk4wRTkzbjZzYUMydFZGbWEvRGlRK2F6dk1VUk9OL0ZGMm0vNTJ3aFlyM2xrbDJWY2taVUNLaE9SclArdjVVRDB4YldMSkZCWEMxWVNqUUhlejZaa04xWFFGNEgrTUJiK0M2eUNLUzhMSXRZbkpnempIQ3FwMFhEN1BtdlpsagogICAgc3VkbzogWyJBTEw9KEFMTCkgTk9QQVNTV0Q6QUxMIl0KICAgIHNoZWxsOiAvYmluL2Jhc2gKCmNocGFzc3dkOgogIGxpc3Q6IHwKICAgIHVidW50dTprZWxvbXBvazE5YWRtaW4KICBleHBpcmU6IGZhbHNlCgpzc2hfcHdhdXRoOiB0cnVlCgpydW5jbWQ6CiAgLSBlY2hvICJuYW1lc2VydmVyIDguOC44LjgiID4gL2V0Yy9yZXNvbHYuY29uZgo=
 ```
 
-### XIV. Resetting CloudStack (Optional)
+### XV. Resetting CloudStack (Optional)
 > If you made a mistake and want to wipe and reinstall CloudStack cleanly:
 ```
 systemctl stop cloudstack-management cloudstack-agent
@@ -431,10 +487,8 @@ rm -rf /var/lib/cloudstack /etc/cloudstack /var/log/cloudstack
 rm -rf /export/primary/* /export/secondary/*
 ```
 
-### XV. Cloudstack Instance Access Documentation
+### XVI. Cloudstack Instance Access Documentation
 - Accessing the instance through the "View console" button:
 ![messageImage_1747392376363](https://github.com/user-attachments/assets/6c350276-47a7-48bd-8206-63f590a3ff9e)
 - Testing the instance's network connectivity using curl to "http://www.google.com":
 ![curl_test](https://github.com/user-attachments/assets/9c032b1b-310e-4b58-aec8-1b0102138404)
-
-
