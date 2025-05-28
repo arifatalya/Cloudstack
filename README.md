@@ -359,10 +359,10 @@ guest.network.device=cloudbr0
 
 ## XI. Accessing the CloudStack UI
 > [!Note]
-> Access via browser with: `http://<YOUR_IP>:8080/client`
-> **Default credentials**:
-> - Username: **admin**
-> - Password: **password**
+> ★ **Access via browser with**: `http://<YOUR_IP>:8080/client` \
+> ★ **Default credentials**: \
+> Username: **admin** \
+> Password: **password**
 
 ## XII. Adding a New Zone
 1. Choose the zone type: \
