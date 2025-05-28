@@ -1,16 +1,16 @@
 # Apache CloudStack Installation on Ubuntu 24.04 (Noble Numbat)
 ![image](https://hackmd.io/_uploads/rJGAZ56Wgx.png)
 
-### **CloudStack 19:**
-* 2206059383 - Aisyah Arifatul Alya
-* 2206814324 - Fairuz Muhammad
-* 2206810452 - Mario Matthews Gunawan
-* 2206826835 - Ryan Safa Tjendana
+### **CloudStack Group 19:**
+- 2206059383 - [Aisyah Arifatul Alya](https://github.com/arifatalya)
+- 2206814324 - [Fairuz Muhammad](https://github.com/NargaFRZ)
+- 2206810452 - [Mario Matthews Gunawan](https://github.com/mariomg09)
+- 2206826835 - [Ryan Safa Tjendana](https://github.com/ryansatj)
 ---
 
 ## I. System Update and Tools Installation
 
-### Prerequisites
+### 1.1. Prerequisites
 Before starting:
 - Ensure the system has at least:
     - 2 CPUs, 4 GB RAM (Management Server only)
@@ -20,7 +20,7 @@ Before starting:
 - Set hostname properly:
 `hostnamectl set-hostname cloudstack-node`
 
-### Installation
+### 1.2. Installation
 > All the commands below shall be ran under the root privilege.
 ```bash!
 sudo -i
@@ -89,8 +89,8 @@ reboot
 # Or if you're not sure, yet:
 sudo netplan try
 ```
-
->  Warning: CloudStack is designed to use bridged Ethernet (eth0). Using Wi-Fi (wlp0s20f3) as part of cloudbr0 may result in VM communication issues. This is acceptable only for testing, not production.
+> [!Note]
+> CloudStack is designed to use bridged Ethernet (eth0). Using Wi-Fi (wlp0s20f3) as part of cloudbr0 may result in VM communication issues. This is acceptable only for testing, not production.
 
 ## III. Configure LVM
 
@@ -148,7 +148,7 @@ systemctl status mysql
 ```
 
 ### 5.4. Deploying database as root and creating new user
-
+> [!Warning]
 > By default, MySQL on Ubuntu 24.04 uses "auth_socket" for root authentication.
 This means logging in to MySQL with mysql -u root -p will fail unless you’ve explicitly assigned a password to the root account and changed its authentication method.
 
@@ -345,13 +345,6 @@ systemctl status cloudstack-management
 # (Optional) Live monitoring of logs:
 tail -f /var/log/cloudstack/management/management-server.log
 ```
-> Access via browser with: 
-
-`http://<YOUR_IP>:8080/client`
-
-- Default credentials:
-    - Username: admin
-    - Password: password
 
 ### Manual Certificate Setup (If Agent Fails to Connect).
 > If agent fails with bad_certificate or SSL handshake failed, re-run agent setup:
@@ -364,7 +357,46 @@ public.network.device=cloudbr0
 guest.network.device=cloudbr0
 ```
 
-## XI. Prepare User-Data with Cloud-Init
+## XI. Accessing the CloudStack UI
+> [!Note]
+> Access via browser with: `http://<YOUR_IP>:8080/client`
+> **Default credentials**:
+> - Username: **admin**
+> - Password: **password**
+
+## XII. Adding a New Zone
+1. Choose the zone type: \
+![image](https://hackmd.io/_uploads/ryTWhiVMgl.png)
+
+2. If you chose the 'Core' zone type, your next step will be this step where you can choose between the 'Advanced' or 'Basic' core zone type. On this example, we chose 'Advanced': \
+![image](https://hackmd.io/_uploads/Bkyq3i4zle.png)
+
+3. Complete the zone details like below: \
+![image](https://hackmd.io/_uploads/ryqGaiVMxe.png)
+
+4. Set up the network:
+    - Physical network: \
+    ![image](https://hackmd.io/_uploads/S1vYpiEfxx.png)
+    - Public traffic: \
+    ![image](https://hackmd.io/_uploads/HJpHAj4Gee.png)
+    - Pod: \
+    ![image](https://hackmd.io/_uploads/SkcyRoEzex.png)
+    - Guest traffic: \
+    ![image](https://hackmd.io/_uploads/SJ0fAoEGlx.png)
+5. Add a new cluster within the pod we just made on the previous step:
+    - Cluster name: \
+    ![image](https://hackmd.io/_uploads/BJH30jVfeg.png)
+    - IP address: \
+    ![image](https://hackmd.io/_uploads/HkKJy34Mll.png)
+    - Primary storage: \
+    ![image](https://hackmd.io/_uploads/BJcEknVMle.png)
+    - Secondary storage: \
+    ![image](https://hackmd.io/_uploads/SJgwyhVfxe.png)
+6. Finally, launch the zone. \
+![image](https://hackmd.io/_uploads/HJ-Y124zxx.png)
+
+## XIII. Prepare User-Data with Cloud-Init
+> [!Important]
 > This step is crucial if you're using Ubuntu Cloud Image as the instance template. Since it doesn't include a default password, you won’t be able to access the VM without setting up credentials and basic configuration through cloud-init.
 - Install cloud-init:
 ```bash!
@@ -415,7 +447,7 @@ I2Nsb3VkLWNvbmZpZwpob3N0bmFtZToga2Vsb21wb2sxOS12bQptYW5hZ2VfZXRjX2hvc3RzOiB0cnVl
 ```
 - And you're done. The content of the **cloud-init.b64** will be used as the "userdata" when you're making a new instance via the CloudMonkey CLI.
 
-## XII. CloudMonkey CLI Setup
+## XIV. CloudMonkey CLI Setup
 - Install the package:
 ```bash!
 sudo apt install cloudmonkey
@@ -445,19 +477,20 @@ set password kelompok19admin
 set display json
 sync
 ```
-## XIII. Register a New Template (via URL)
+## XV. Register a New Template (via URL)
+> [!Note]
 > Before making a new instance, make sure that you already have the template that you're going to use. Simply skip this step if you're using the built-in templates which Cloudstack provides.
 - Ubuntu offers various options of cloud images that can be accessed here: https://cloud-images.ubuntu.com/
 - Navigate to your version of choice. On this example, we chose the Jammy Jellyfish:
 https://cloud-images.ubuntu.com/jammy/current/
-- Pick the one with "QCow2 UEFI/GPT Bootable disk image" as the description from the list. For example, we chose this one below. 
+- Pick the one with "QCow2 UEFI/GPT Bootable disk image" as the description from the list. For example, we chose this one below. \
 ![Screenshot 2025-05-23 115624](https://hackmd.io/_uploads/ryOwgFp-xg.png)
 - Copy the URL by hovering through it, right-click on your mouse or two-finger click on your touchpad, and click on the "Copy link address" from the pop-up option. This URL will be pasted to the URL field on the form when registering the template. We are doing this because we want the Cloudstack to install it directly from the URL instead of requiring us to download the image to our local storage first.
 https://cloud-images.ubuntu.com/jammy/current/jammy-server-cloudimg-amd64.img
-- Navigate to the "Images > Templates" from the left-hand side menu, and click on the "Register template from URL" button.
+- Navigate to the "Images > Templates" from the left-hand side menu, and click on the "Register template from URL" button. \
 ![Screenshot 2025-05-16 012200](https://hackmd.io/_uploads/ryrsiu6bxx.png)
 
-## XIV. Make a New Instance
+## XVI. Make a New Instance
 > Due to preference, we are using cmk to make a new instance instead of making it directly from the Cloudstack GUI. 
 - Enter the CloudMonkey CLI:
 ```bash!
@@ -478,7 +511,7 @@ create network name=SharedNetwork01 displaytext=SharedNetwork01 networkofferingi
 deploy virtualmachine name=Ubuntu-22-01 templateid=abbfef47-476e-4518-9e5f-a1a901c45819 serviceofferingid=eb6c8ea9-2eb6-4c35-89bf-e3d5f70df23c zoneid=02a8b1b0-9c1e-480c-9d13-9ae780d51905 networkids=8593971a-0cf7-4778-84e2-52067eadf540 keypair=myrsa userdata=I2Nsb3VkLWNvbmZpZwpob3N0bmFtZToga2Vsb21wb2sxOS12bQptYW5hZ2VfZXRjX2hvc3RzOiB0cnVlCgp1c2VyczoKICAtIG5hbWU6IHVidW50dQogICAgc3NoLWF1dGhvcml6ZWQta2V5czoKICAgICAgLSBzc2gtcnNhIEFBQUFCM056YUMxeWMyRUFBQUFEQVFBQkFBQUJBUUNVQ25XNjJPUmlMNWN4VFJsNVN1VDdGMXNjZzgwZnJnTlA3bEFUbTJqOU80WFhFMFV0dGlkd3hIaGNhbVlWL0R0WDU3dHB5S2V3dVpOaXZ4UmZDNVJzQ3dObnZ6UTFZM01xTk9QckV3eXo5cjYyZDZrRzFid3RBQlAzMDJzNzBuTVZ5eTNtOXVHdEJDbDhHSkhPSWc3blNFcnpBeFlBb2k5dmNYeHFaNk1aSmUrc1hOc2U4QnhsbmhLUzQwUElseEtGck9XQTRyc0REYnFna1RWTWMzTDk5Vk4wRTkzbjZzYUMydFZGbWEvRGlRK2F6dk1VUk9OL0ZGMm0vNTJ3aFlyM2xrbDJWY2taVUNLaE9SclArdjVVRDB4YldMSkZCWEMxWVNqUUhlejZaa04xWFFGNEgrTUJiK0M2eUNLUzhMSXRZbkpnempIQ3FwMFhEN1BtdlpsagogICAgc3VkbzogWyJBTEw9KEFMTCkgTk9QQVNTV0Q6QUxMIl0KICAgIHNoZWxsOiAvYmluL2Jhc2gKCmNocGFzc3dkOgogIGxpc3Q6IHwKICAgIHVidW50dTprZWxvbXBvazE5YWRtaW4KICBleHBpcmU6IGZhbHNlCgpzc2hfcHdhdXRoOiB0cnVlCgpydW5jbWQ6CiAgLSBlY2hvICJuYW1lc2VydmVyIDguOC44LjgiID4gL2V0Yy9yZXNvbHYuY29uZgo=
 ```
 
-### XV. Resetting CloudStack (Optional)
+### XVII. Resetting CloudStack (Optional)
 > If you made a mistake and want to wipe and reinstall CloudStack cleanly:
 ```
 systemctl stop cloudstack-management cloudstack-agent
@@ -487,8 +520,8 @@ rm -rf /var/lib/cloudstack /etc/cloudstack /var/log/cloudstack
 rm -rf /export/primary/* /export/secondary/*
 ```
 
-### XVI. Cloudstack Instance Access Documentation
-- Accessing the instance through the "View console" button:
+### XVIII. Cloudstack Instance Access Documentation
+- Accessing the instance through the "View console" button: \
 ![messageImage_1747392376363](https://github.com/user-attachments/assets/6c350276-47a7-48bd-8206-63f590a3ff9e)
-- Testing the instance's network connectivity using curl to "http://www.google.com":
+- Testing the instance's network connectivity using curl to "http://www.google.com": \
 ![curl_test](https://github.com/user-attachments/assets/9c032b1b-310e-4b58-aec8-1b0102138404)
