@@ -1,4 +1,5 @@
 # Apache CloudStack Installation on Ubuntu 24.04 (Noble Numbat)
+![image](https://github.com/user-attachments/assets/61645f28-9e8c-4799-9886-f74d1c555e6a)
 ![image](https://hackmd.io/_uploads/rJGAZ56Wgx.png)
 
 ### **CloudStack Group 19:**
@@ -79,6 +80,8 @@ network:
             nameservers:
                 addresses: [8.8.8.8, 8.8.4.4]
 ```
+Documentation:
+![image](https://github.com/user-attachments/assets/3e465b92-cf2c-40fe-9ccf-b31a101d3281)
 
 5. Click the escape key and finally type on ":wq" to write and quit the editor. 
 6. Apply changes to the file by using these commands below:
@@ -218,6 +221,9 @@ NEED_STATD=yes
 ```
 Save and exit with `:wq`.
 
+Documentation:
+![image](https://github.com/user-attachments/assets/d1c4ec08-f73b-47a2-be1a-edc54a3d40b6)
+
 - 3️⃣ Edit `/etc/default/quota`:
 ```bash
 vim /etc/default/quota
@@ -227,6 +233,9 @@ Find and replace the `RPCRQUOTADOPTS` line:
 RPCRQUOTADOPTS="-p 875"
 ```
 Save and exit with `:wq`.
+
+Documentation:
+![image](https://github.com/user-attachments/assets/b5dfa302-c6b5-4278-bf7e-d0e5f154939a)
 
 - 4️⃣ Then restart the NFS service:
 ```bash
@@ -259,6 +268,8 @@ vim /etc/libvirt/qemu.conf
 ```ini!
 vnc_listen = "0.0.0.0"
 ```
+Documentation:
+![image](https://github.com/user-attachments/assets/2c37beda-5ab5-470e-99bc-633bdaeaf2d1)
 
 - Editing `/etc/libvirt/libvirtd.conf` by adding this at the bottom of the file.
 ```bash!
@@ -272,6 +283,8 @@ tcp_port = "16509"
 mdns_adv = 0
 auth_tcp = "none"
 ```
+Documentation:
+![image](https://github.com/user-attachments/assets/7002e81f-5813-480d-8a1c-aa26e3d9a506)
 
 - Enabling libvirtd for TCP listening 
 ```bash
@@ -280,6 +293,9 @@ vim /etc/default/libvirtd
 ```ini
 LIBVIRTD_ARGS="--listen"
 ```
+Documentation:
+![image](https://github.com/user-attachments/assets/96152cec-fa59-4f5f-9552-7b070b3928e9)
+
 
 ### 7.4. Masking unused sockets and restarting libvirtd
 
@@ -346,13 +362,16 @@ systemctl status cloudstack-management
 tail -f /var/log/cloudstack/management/management-server.log
 ```
 
+Documentation:
+![image](https://github.com/user-attachments/assets/34b5e4f4-2211-4db9-9e3f-aa34cf7efc05)
+
 ### Manual Certificate Setup (If Agent Fails to Connect).
 > If agent fails with bad_certificate or SSL handshake failed, re-run agent setup:
 
 `cloudstack-setup-agent --configure`
 >Ensure /etc/cloudstack/agent/agent.properties has:
 ```
-private.network.device=wlp0s20f3
+private.network.device=eno1
 public.network.device=cloudbr0
 guest.network.device=cloudbr0
 ```
