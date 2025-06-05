@@ -544,3 +544,11 @@ rm -rf /export/primary/* /export/secondary/*
 ![messageImage_1747392376363](https://github.com/user-attachments/assets/6c350276-47a7-48bd-8206-63f590a3ff9e)
 - Testing the instance's network connectivity using curl to "http://www.google.com": \
 ![curl_test](https://github.com/user-attachments/assets/9c032b1b-310e-4b58-aec8-1b0102138404)
+
+### References:
+- https://github.com/AhmadRifqi86/cloudstack-install-and-configure
+- https://docs.cloudstack.apache.org/en/latest/installguide/configuration.html
+- https://youtu.be/DlJg3LYvIIs?si=bE4wpjesHR8Oix9y
+
+### YouTube Link:
+https://youtu.be/oMyn8NxLLmQ
