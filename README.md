@@ -1,10 +1,17 @@
 # Apache CloudStack Installation on Ubuntu 24.04 (Noble Numbat)
 ![image](https://github.com/user-attachments/assets/61645f28-9e8c-4799-9886-f74d1c555e6a)
+<p align="center">
+  <em>
+   <br>
+    Prepared for the <strong>Komputasi Awan (ENCE606031)</strong> course<br>
+    Department of Electrical Engineering, Faculty of Engineering, Universitas Indonesia
+  </em>
+</p>
+
 ![image](https://hackmd.io/_uploads/rJGAZ56Wgx.png)
 
+---
 ### **CloudStack Group 19:**
-Link Youtube: https://youtu.be/oMyn8NxLLmQ
-
 - 2206059383 - [Aisyah Arifatul Alya](https://github.com/arifatalya)
 - 2206814324 - [Fairuz Muhammad](https://github.com/NargaFRZ)
 - 2206810452 - [Mario Matthews Gunawan](https://github.com/mariomg09)
